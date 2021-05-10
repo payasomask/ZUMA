@@ -47,11 +47,16 @@ public class Bullet : MonoBehaviour
     return mEliminate;
   }
 
+  public float getSpeed(){
+    return speed;
+  }
+
   private void OnTriggerEnter(Collider other){
     if(other.gameObject.TryGetComponent<PathBallTag>(out PathBallTag ball)){
-      Vector3 hitposition = other.ClosestPoint(gameObject.transform.position);
+      //Vector3 hitposition = other.ClosestPoint(gameObject.transform.position);
       //HIT
-      MoveBallSystem.moveballSystem.InsertBall(this, other,hitposition);
+      //改傳入當球撞擊到ball當時的位置
+      MoveBallSystem.moveballSystem.InsertBall(this, other,gameObject.transform.position);
 
       OnDeath();
     }
