@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using PathCreation;
@@ -199,7 +199,7 @@ public class MoveBallSystem : MonoBehaviour
     insertDir insertdir = sub >= 0.0f ? insertDir.Forward : insertDir.Back;
 
     //往前或是往後一個ball直徑的距離
-    float targetdis = hitedball.dis + (insertdir == insertDir.Forward ? createball.ball_trans.localScale.x : -createball.ball_trans.localScale.x);
+    float targetdis = hitedball.dis + (insertdir == insertDir.Forward ? createball.ball_trans.localScale.x : 0.0f);
     //如果是要插入前面那就維持index，是插入後面就index+1
     hitedBallIndex = insertdir == insertDir.Forward ? hitedBallIndex : hitedBallIndex + 1;
 
@@ -207,10 +207,38 @@ public class MoveBallSystem : MonoBehaviour
     createball.dis = targetdis;
     createball.root_trans.gameObject.SetActive(true);
     ball_list.Insert(hitedBallIndex, createball);
+
+    inserttimer = 0.0f;
+    insertAnimation = new InsertAnimation();
+    createball.canMove = false;
+    Debug.Log(insertdir);
+
+    Vector3 insertPositionOnPath = Path.path.GetPointAtDistance(createball.dis /*+ ball_rotatespeed * inserttime*/);
+    float ball_dis = createball.ball_trans.lossyScale.x * 0.5f + hitedball.ball_trans.lossyScale.x *0.5f;
+
+    hitedball.ball_trans.GetComponent<MeshRenderer>().material.color= new Color(1.0f, 1.0f, 1.0f, 0.5f);
+    //我們先固定一個duration，
+    //還要加入這期間移動的dis
+    insertAnimation.setUp(createball,
+      hitedball,
+      insertPositionOnPath,
+      ball_dis,
+      inserttime,
+      () => {
+        hitedball.ball_trans.GetComponent<MeshRenderer>().material.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+      }
+      );
+    //假設撞擊點是0
+    //假設disOnpath是1.0
+    //也就是說從bullethitposition 面向 insertvector 總長移動長度是insertdis 在 insertdis長度的裡做 easing表演就好
+
+    //要根據球速做一個插入的初速度來算出插入的總時間長度
+
+
+
     EliminateLogic.eliminatelogic.setEliminate(bullet.GetBulletEliminate(), hitedBallIndex);
 
-    //start insert
-    inserttimer = 0.0f;
+
   }
 
   BallSpwan.Ball findFirstBallOnPath() {
@@ -229,6 +257,7 @@ public class MoveBallSystem : MonoBehaviour
   public float getCurrentBallMoveSpeed() {
     return ball_rotatespeed;
   }
+  InsertAnimation insertAnimation;
   public void MoveBall() {
     if (ball_list == null)
       return;
@@ -239,13 +268,18 @@ public class MoveBallSystem : MonoBehaviour
 
     float instertotaltime = inserttime;
 
+    float move_dis_lerp = 0.9f;//移動的時候使用較慢的lerp減少抖動
+
     if (inserttimer < instertotaltime) {
+      move_dis_lerp = 0.0f;//插入期間球的不能動
       inserttimer += Time.deltaTime;
       if (inserttimer >= instertotaltime){
         inserttimer = instertotaltime;
         EliminateLogic.eliminatelogic.checkEliminate(ball_list);
       }
     }
+
+    InsertBallMove();
 
     //最後一顆球一定能動
     ball_list[ball_list.Count - 1].canMove = true;
@@ -266,12 +300,7 @@ public class MoveBallSystem : MonoBehaviour
         behideball = null;
       }
 
-      //內差時間內才檢查push，以減少正常move時的抖動
-      if (inserttimer >= instertotaltime)
-        behideball = null;
-
-      float move_dis_lerp = 0.6f;//移動的時候使用較慢的lerp減少抖動
-      float push_dis_lerp = 0.8f;//push的時候使用較快的lerp快速推動
+      float push_dis_lerp = 0.4f;//移動push的時候使用較慢的的lerp減少抖動
 
       //只有一種情況是只剩一個球在path上移動
       //STAR後才開始判定push
@@ -281,8 +310,7 @@ public class MoveBallSystem : MonoBehaviour
         //也就是說後面的球的dis距離小於後面的球的直徑就能移動
         float push_dis = ball.ball_trans.lossyScale.x * 0.5f + behideball.ball_trans.lossyScale.x * 0.5f;
         float ball_dis = ball.dis - behideball.dis;
-        if (ball_dis > push_dis)
-        {
+        if (ball_dis > push_dis){
           //表示後面的球的距離超過的兩球半徑和，這個ball不能移動
           ball.canMove = false;
         }
@@ -295,6 +323,12 @@ public class MoveBallSystem : MonoBehaviour
         }
       }
 
+      BallSpwan.Ball onInsertingBall = getInsertBall();
+      if (onInsertingBall != null)
+      {
+        onInsertingBall.canMove = false;
+      }
+
       if (ball.canMove == false)
         continue;
 
@@ -305,7 +339,8 @@ public class MoveBallSystem : MonoBehaviour
       //每秒 * 拍 * ball_rotatespeed
       //拍又是一個常數所以就乾脆拿掉
       //當有球需要插入的時候，球的速率*一個降速質
-      ball.dis += Time.deltaTime * ball_rotatespeed * (inserttimer < instertotaltime ? insert_dis_lerp_Factor : move_dis_lerp);
+      //ball.dis += Time.deltaTime * ball_rotatespeed * (inserttimer < instertotaltime ? insert_dis_lerp_Factor : move_dis_lerp);
+      ball.dis += Time.deltaTime * ball_rotatespeed * move_dis_lerp;
 
       //Debug.Log(tmp.id + " dis : " + tmp.dis);
       ball.root_trans.position = Path.path.GetPointAtDistance(ball.dis, EndOfPathInstruction.Stop);
@@ -359,5 +394,26 @@ public class MoveBallSystem : MonoBehaviour
 
   public float getInsertTime(){
     return inserttime;
+  }
+
+  BallSpwan.Ball getInsertBall(){
+    if (insertAnimation != null){
+      BallSpwan.Ball onInsertingBall = insertAnimation.getBall();
+      if (onInsertingBall != null)
+      {
+        onInsertingBall.canMove = false;
+      }
+    }
+    return null;
+  }
+
+  void InsertBallMove(){
+    //insertBallAnimation
+    if (insertAnimation != null){
+      //insertAnimation.Easing(inserttimer);
+      insertAnimation.RadiansEasing(inserttimer);
+    }
+
+    return;
   }
 }
