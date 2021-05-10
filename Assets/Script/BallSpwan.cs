@@ -20,7 +20,7 @@ public class BallSpwan : MonoBehaviour
 {
   public static BallSpwan ballSpwan = null;
 
-  public class Ball{
+  public class Ball {
     public int id { get; set; }
     public Transform root_trans { get; set; }
     public float dis = 0.0f;
@@ -78,13 +78,12 @@ public class BallSpwan : MonoBehaviour
 
     Transform ball_trans = ball_root.Find("ball");
     ball_trans.gameObject.AddComponent<PathBallTag>();
-
+    ball_root.gameObject.SetActive(false);
     Ball tmp_ball = new Ball()
     {
       id = currentballindex,
       root_trans = ball_root,
       ball_trans = ball_trans,
-      canMove = false,
       isSpwan = false,
       ball_collider = ball_trans.GetComponent<Collider>(),
       dis = 0.0f,
@@ -159,7 +158,6 @@ public class BallSpwan : MonoBehaviour
       id = -1,
       root_trans = ball_root,
       ball_trans = ball_trans,
-      canMove = false,
       isSpwan = false,
       ball_collider = ball_trans.GetComponent<Collider>(),
       dis = 0.0f,

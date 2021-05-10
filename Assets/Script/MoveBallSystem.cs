@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using PathCreation;
@@ -142,7 +142,6 @@ public class MoveBallSystem : MonoBehaviour
 
 
   void removeBallOnPath(int index) {
-    ball_list[index].canMove = false;
     ball_list[index].root_trans.gameObject.SetActive(false);
     Destroy(ball_list[index].root_trans.gameObject);
     ball_list.RemoveAt(index);
@@ -158,13 +157,14 @@ public class MoveBallSystem : MonoBehaviour
     if (ball_list == null)
       ball_list = new List<BallSpwan.Ball>();
 
-    ball.canMove = true;
     ball.dis = getCurrentLastBallDisOnPath() - (getCurrentLastBallRadiusOnPath() + ball.ball_trans.lossyScale.x*0.5f);
-    if (ball.dis < 0.0f)
-      ball.root_trans.gameObject.SetActive(false);
-    else
-      ball.root_trans.gameObject.SetActive(true);
+    ball.canMove = true;
     ball_list.Add(ball);
+    //int ballindex = ball_list.Count - 1;
+    //if (ball.dis < 0.0f)
+    //  hideBallOnPath(ballindex);
+    //else
+    //  ShowBallOnPath(ballindex);
   }
 
   enum insertDir {
@@ -172,7 +172,7 @@ public class MoveBallSystem : MonoBehaviour
     Back
   }
   //插入
-  public void InsertBall(Bullet bullet, Collider behitball, Vector3 hitposition)
+  public void InsertBall(Bullet bullet, Collider behitball, Vector3 bullethitposition)
   {
     if (ball_list == null)
       ball_list = new List<BallSpwan.Ball>();
@@ -183,10 +183,10 @@ public class MoveBallSystem : MonoBehaviour
     BallSpwan.Ball hitedball = null;
     //int currentindex = 0;
     int hitedBallIndex = 0;
-    //擊中的目標，同時更改全部的球的push旗標
+    //擊中的目標
     foreach (var v in ball_list) {
       if (v.ball_collider == behitball) {
-        createball = BallSpwan.ballSpwan.insertBall(BallprefabOnBullet, bulletcolor, hitposition);
+        createball = BallSpwan.ballSpwan.insertBall(BallprefabOnBullet, bulletcolor, bullethitposition);
         hitedball = v;
         break;
       }
