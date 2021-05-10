@@ -123,8 +123,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8fdf21fccf436b3438394b43c7b71b2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ReloadScale: 0.5
-  speed: 1
+  ReloadScale: 1
+  speed: 5
   death_time: 5
   PathBall: {fileID: 4041919346934228906, guid: 25146331d3573fc46b81c57c8e2c82ba,
     type: 3}
