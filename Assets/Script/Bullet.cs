@@ -18,8 +18,10 @@ public class Bullet : MonoBehaviour
   public BallColor color = BallColor.Blue;
   [SerializeField]
   public SameColorEliminate mEliminate = null;
+  private bool triggered = false;
+  
 
-    public void setup(Vector3 dir){
+  public void setup(Vector3 dir){
     this.dir = dir;
     befired = true;
   }
@@ -52,7 +54,8 @@ public class Bullet : MonoBehaviour
   }
 
   private void OnTriggerEnter(Collider other){
-    if(other.gameObject.TryGetComponent<PathBallTag>(out PathBallTag ball)){
+    if(other.gameObject.TryGetComponent<PathBallTag>(out PathBallTag ball) && triggered == false){
+      triggered = true;
       //Vector3 hitposition = other.ClosestPoint(gameObject.transform.position);
       //HIT
       //改傳入當球撞擊到ball當時的位置
