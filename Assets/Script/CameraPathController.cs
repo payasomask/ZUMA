@@ -12,8 +12,6 @@ public class CameraPathController : MonoBehaviour
   //[SerializeField]
   //private CinemachineBrain BrainCamObj = null;
   [SerializeField]
-  private CinemachineVirtualCamera FrontCamObj = null;
-  [SerializeField]
   private CinemachineFreeLook FreeLookCam = null;
   //[SerializeField]
   //private CinemachineVirtualCamera BackCamObj = null;
@@ -59,19 +57,19 @@ public class CameraPathController : MonoBehaviour
       Camera_Aim.transform.rotation *= Quaternion.AngleAxis(-180, Vector3.right);
     }
 
-    CinemachineVirtualCamera vc = FrontCamObj.GetComponent<CinemachineVirtualCamera>();
-    vc.Follow = Camera_Aim.transform;
+    //CinemachineVirtualCamera vc = FrontCamObj.GetComponent<CinemachineVirtualCamera>();
+    //vc.Follow = Camera_Aim.transform;
 
     //AimConstraint camera_aim = CamObj.GetComponent<AimConstraint>();
     //camera_aim.SetSource(0, new ConstraintSource() { sourceTransform = Camera_Aim.transform, weight = 1.0f });
 
     //just lockAt
-    PersonFollow = FrontCamObj.AddCinemachineComponent<Cinemachine3rdPersonFollow>();
+    //PersonFollow = FrontCamObj.AddCinemachineComponent<Cinemachine3rdPersonFollow>();
     //vc.LookAt = Camera_Aim.transform;
 
     //follow aim
-    PersonFollow.CameraDistance = 1.0f;
-    PersonFollow.Damping = new Vector3(0.1f, 0.5f, 0.3f);
+    //PersonFollow.CameraDistance = 1.0f;
+    //PersonFollow.Damping = new Vector3(0.1f, 0.5f, 0.3f);
     //cineTransposer.m_FollowOffset.z = 1.0f;
     //cineTransposer.m_BindingMode = CinemachineTransposer.BindingMode.LockToTargetNoRoll;
 
@@ -125,8 +123,8 @@ public class CameraPathController : MonoBehaviour
   //Quaternion nextRotate;
   float rotateLerp = 0.8f;
   void rotateCamera(){
-    if (FrontCamObj == null)
-      return;
+    //if (FrontCamObj == null)
+    //  return;
 
     float horizomtal = Input.GetAxisRaw("Horizontal");
     float vertical = Input.GetAxisRaw("Vertical");

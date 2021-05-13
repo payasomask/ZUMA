@@ -52,6 +52,7 @@ public class MoveBallSystem : MonoBehaviour
 
   //分段
   class segmentBall{
+    public int segmentid = 0;
     BallSpwan.Ball firstball;
     BallSpwan.Ball endball;
     int count;
@@ -153,13 +154,13 @@ public class MoveBallSystem : MonoBehaviour
       return;
     }
 
-    adjacmentMove();
-
     MoveBall();
 
     InsertBallMove();
 
-    //SpwanBall();
+    SpwanBall();
+
+    segmentBallOnPath();
 
     if (Input.GetKeyDown(KeyCode.R)) {
       removeRandomBallOnPath();
@@ -369,7 +370,7 @@ public class MoveBallSystem : MonoBehaviour
             backaspeed = 1.0f;
           }
           ball.speed -= Time.deltaTime * backaspeed;
-          //繼承上一顆球的回吸速度
+          //繼承上一顆球的回吸速度，那怎麼判斷要不要繼承
           if (behideball.canMove == false && behideball.speed<0.0f){
             ball.speed = behideball.speed;
           }
@@ -390,12 +391,6 @@ public class MoveBallSystem : MonoBehaviour
 
       //為了方便辨識把不能動的球改成黑色球
       setBallColor(ball);
-      //addTimerWhenCanMove(ball);
-
-      //回吸
-      //if(ball.canMove == false){
-      //  float targetdis = 
-      //}
 
       //這個也是讓插入球可以表演的關鍵
       //if (ball.canMove == false){
@@ -525,22 +520,7 @@ public class MoveBallSystem : MonoBehaviour
     return ball_list[index + 1];
   }
 
-  //假設回吸得最大等待時間是1.0f
-  float gobackmaxtime = 1.0f;
-  //假設回吸得最大等待時間是0.2f
-  float gobackminitime = 0.2f;
-
-  void adjacmentMove(){
-    //分段加速回吸
-    //float backaspeed = 0.2f;
-    //if (behideball.color == ball.color)
-    //{
-    //  backaspeed = 1.0f;
-    //}
-    //ball.speed -= Time.deltaTime * backaspeed;
-  }
-
-  void segmentBallOnPath() { 
+  void segmentBallOnPath(){
 
   }
 
