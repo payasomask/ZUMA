@@ -23,6 +23,7 @@ public class MoveBallSystem : MonoBehaviour
 
   [SerializeField]
   private float ball_rotatespeed = 0.5f;
+  private float default_ball_rotatespeed = 0.5f;
   #endregion
 
   #region Init
@@ -50,26 +51,6 @@ public class MoveBallSystem : MonoBehaviour
 
   #region InsertBall
 
-  //分段
-  class segmentBall{
-    public int segmentid = 0;
-    BallSpwan.Ball firstball;
-    BallSpwan.Ball endball;
-    int count;
-    List<BallSpwan.Ball> balls_onPath_index = new List<BallSpwan.Ball>();
-    public float speed {  set {
-        speed = value;
-        for (int i = 0;i < balls_onPath_index.Count; i++){
-          balls_onPath_index[i].speed = value;
-        }
-      } }
-    float freezytimer = 0.0f;
-    public void addtimer(float addvalue){
-      freezytimer += addvalue;
-    }
-  }
-  List<segmentBall> segmentball_list = new List<segmentBall>();
-
   private float inserttimer = 0.2f;
   //這兩個參數-------------------------------------------
   //必須在inserttime時間內要確保insert_dis_lerp_Factor的強度設定要能盡量接近lerp結束後的數值
@@ -82,6 +63,36 @@ public class MoveBallSystem : MonoBehaviour
   private float insert_dis_lerp_Factor = 0.6f;
   //------------------------------------------------------
   #endregion
+
+  #region Goback
+  //分段
+  class segmentBall
+  {
+    public int segmentid = 0;
+    BallSpwan.Ball firstball;
+    BallSpwan.Ball endball;
+    int count;
+    List<BallSpwan.Ball> balls_onPath_index = new List<BallSpwan.Ball>();
+    public float speed
+    {
+      set
+      {
+        speed = value;
+        for (int i = 0; i < balls_onPath_index.Count; i++)
+        {
+          balls_onPath_index[i].speed = value;
+        }
+      }
+    }
+    float freezytimer = 0.0f;
+    public void addtimer(float addvalue)
+    {
+      freezytimer += addvalue;
+    }
+  }
+  List<segmentBall> segmentball_list = new List<segmentBall>();
+  #endregion
+
   Status mcurrentstatus = Status.INIT;
   // Start is called before the first frame update
   private void Awake() {
@@ -94,6 +105,7 @@ public class MoveBallSystem : MonoBehaviour
   void init(){
     //finish insert
     inserttimer = inserttime;
+    default_ball_rotatespeed = ball_rotatespeed;
     StartInit();
   }
 
@@ -148,7 +160,7 @@ public class MoveBallSystem : MonoBehaviour
       setAllBallSpeed(ball_rotatespeed);
     }
     else if (mcurrentstatus == Status.MOVING_FIRST_BALL_DONE){
-      ball_rotatespeed = 0.1f;
+      ball_rotatespeed = default_ball_rotatespeed;
       setAllBallSpeed(ball_rotatespeed);
       mcurrentstatus = Status.START;
       return;
@@ -361,14 +373,13 @@ public class MoveBallSystem : MonoBehaviour
         if (ball_dis > push_dis + pushoffset){
           //表示後面的球的距離超過的兩球半徑和，這個ball不能移動
           ball.canMove = false;
-
           float backaspeed = 0.2f;
+          if (ball.gobacktimer < gobackmaxtime)
+            backaspeed = 0.0f;
+
           if (ball.speed >= 0.0f)
             ball.speed = 0.0f;
 
-          if (behideball.color == ball.color){
-            backaspeed = 1.0f;
-          }
           ball.speed -= Time.deltaTime * backaspeed;
           //繼承上一顆球的回吸速度，那怎麼判斷要不要繼承
           if (behideball.canMove == false && behideball.speed<0.0f){
@@ -390,7 +401,7 @@ public class MoveBallSystem : MonoBehaviour
       freezyInsertBall();
 
       //為了方便辨識把不能動的球改成黑色球
-      setBallColor(ball);
+      //setBallColor(ball);
 
       //這個也是讓插入球可以表演的關鍵
       //if (ball.canMove == false){
@@ -485,7 +496,7 @@ public class MoveBallSystem : MonoBehaviour
       BallSpwan.Ball onInsertingBall = insertAnimation.getBall();
       if (onInsertingBall != null){
         onInsertingBall.canMove = false;
-        setBallColor(onInsertingBall);
+        //setBallColor(onInsertingBall);
       }
     }
     return;
@@ -517,10 +528,77 @@ public class MoveBallSystem : MonoBehaviour
     if (behideindex >= ball_list.Count)
       return null;
 
-    return ball_list[index + 1];
+    return ball_list[behideindex];
+  }
+
+  BallSpwan.Ball findfrontball(int index){
+    if (ball_list.Count == 0 || ball_list.Count == 1)
+      return null;
+
+    int behideindex = index - 1;
+    if (behideindex < 0)
+      return null;
+
+    return ball_list[behideindex];
   }
 
   void segmentBallOnPath(){
+    int currentsegmentid = 0;
+    BallSpwan.Ball segmentfirstball = null;
+
+    //要分段，不過這個分段的邏輯跟消除的時候的分段邏輯感覺要用同一個...不然會導致一些問題..
+    for (int i = ball_list.Count -1; i >= 0; i --){
+      BallSpwan.Ball frontball = findfrontball(i);
+      BallSpwan.Ball ball = ball_list[i];
+      if(frontball == null){
+        ball.segmentid = currentsegmentid;
+        setBallColor(ball);
+        continue;
+      }
+
+      float touch_legnth = frontball.ball_trans.lossyScale.x * 0.5f + ball.ball_trans.lossyScale.x * 0.5f;
+      float touch_offset = 0.01f;//小許誤差容忍
+      float bal_ldis = frontball.dis - ball.dis;
+      if (bal_ldis > touch_legnth + touch_offset){
+        //確定是斷開
+        ball.segmentid = currentsegmentid;
+        currentsegmentid++;
+        //找到目前分段後，上一段的最前面一顆球
+        segmentfirstball = ball;
+      }
+      else{
+        //相連
+        ball.segmentid = currentsegmentid;
+        frontball.gobacktimer = 0.0f;
+      }
+
+      if(segmentfirstball != null){
+
+        frontball.gobacktimer += Time.deltaTime * gobackrate;
+        //前段最前面那顆，與後段最後一顆如果同顏色
+        if (segmentfirstball.color == frontball.color){
+          frontball.gobacktimer = gobackmaxtime;
+        }
+        //只影響分段後，後面的第一顆球
+        segmentfirstball = null;
+      }
+      setBallColor(ball);
+    }
+  }
+
+  float gobackrate = 1.0f;//回吸計時器的計時速率
+  float gobackmaxtime = 1.0f;//回吸時最慢等待時間
+
+  void goback(){
+    BallSpwan.Ball segmentfirstball = null;
+    for (int i = ball_list.Count - 1; i >= 0; i--){
+      BallSpwan.Ball ball = ball_list[i];
+      BallSpwan.Ball frontball = findfrontball(i);
+      
+      if (ball.segmentid == 0)
+        continue;
+      ball.gobacktimer += Time.deltaTime * gobackrate;
+    }
 
   }
 
@@ -530,22 +608,29 @@ public class MoveBallSystem : MonoBehaviour
     }
   }
   void setBallColor(BallSpwan.Ball ball){
-    //debug用
-    if (ball.canMove == false){
-      ball.ball_trans.GetComponent<MeshRenderer>().material.color = Color.black;
-      return;
-    }
+    //canmovedebug用
+    //if (ball.canMove == false){
+    //  ball.ball_trans.GetComponent<MeshRenderer>().material.color = Color.black;
+    //  return;
+    //}
 
+    //MeshRenderer MeshRenderer = ball.ball_trans.GetComponent<MeshRenderer>();
 
-    MeshRenderer MeshRenderer = ball.ball_trans.GetComponent<MeshRenderer>();
+    //if (ball.color == BallColor.Blue){
+    //  MeshRenderer.material.color = Color.blue;
+    //}
+    //else if(ball.color == BallColor.Red){
+    //  MeshRenderer.material.color = Color.red;
+    //}else if(ball.color == BallColor.Yellow){
+    //  MeshRenderer.material.color = Color.yellow;
+    //}
 
-    if (ball.color == BallColor.Blue){
-      MeshRenderer.material.color = Color.blue;
-    }
-    else if(ball.color == BallColor.Red){
-      MeshRenderer.material.color = Color.red;
-    }else if(ball.color == BallColor.Yellow){
-      MeshRenderer.material.color = Color.yellow;
-    }
+    //segment用
+    //float rgb = (ball.segmentid % (int)BallColor.SZ) * 0.3f;
+    //ball.ball_trans.GetComponent<MeshRenderer>().material.color = new Color(rgb, rgb, rgb,1.0f);
+
+    //gobacktime用
+    //float rgb = ball.gobacktimer;
+    //ball.ball_trans.GetComponent<MeshRenderer>().material.color = new Color(rgb, rgb, rgb, 1.0f);
   }
 }

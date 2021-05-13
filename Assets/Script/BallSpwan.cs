@@ -31,6 +31,8 @@ public class BallSpwan : MonoBehaviour
     public Collider ball_collider { get; set; }
     public BallColor color { get; set; }
     public float speed { get; set; }
+    public int segmentid { get; set; }
+    public float gobacktimer = 0.0f;
   }
 
   [SerializeField]
