@@ -26,9 +26,12 @@ public class BallSpwan : MonoBehaviour
     public float dis = 0.0f;
     public bool canMove { get; set; }
     public bool isSpwan { get; set; }
+    public bool remove = false;
     public Transform ball_trans = null;
     public Collider ball_collider { get; set; }
     public BallColor color { get; set; }
+    public float speed { get; set; }
+    public float backtimer = 0.0f;
   }
 
   [SerializeField]
@@ -60,7 +63,7 @@ public class BallSpwan : MonoBehaviour
     //}
 
     BallColor ballcolor = (BallColor)Random.Range(0, (int)BallColor.SZ);
-
+    //ballcolor = BallColor.Red;
     moveSystem.AddBall(InstantiateBall(ballcolor));
       
   }

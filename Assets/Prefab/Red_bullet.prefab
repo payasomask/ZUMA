@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ReloadScale: 1
-  speed: 5
+  speed: 3
   death_time: 5
   PathBall: {fileID: 3529928519970105100, guid: 52f99602cde55df4fa70b1bb3a9538af,
     type: 3}

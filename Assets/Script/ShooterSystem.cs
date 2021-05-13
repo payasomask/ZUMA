@@ -69,7 +69,8 @@ public class ShooterSystem : MonoBehaviour
   }
 
   Bullet SpwanBullet(){
-    Transform bullet_root = Instantiate(bulletprefab_list[currentbulletindex % bulletprefab_list.Count]).transform;
+    BallColor color = (BallColor)(currentbulletindex % bulletprefab_list.Count);
+    Transform bullet_root = Instantiate(bulletprefab_list[(int)color]).transform;
     Bullet bullet = bullet_root.gameObject.GetComponent<Bullet>();
     bullet.gameObject.SetActive(false);
     currentbulletindex++;
