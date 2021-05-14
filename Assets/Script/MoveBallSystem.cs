@@ -278,6 +278,7 @@ public class MoveBallSystem : MonoBehaviour
     insertAnimation = new InsertAnimation();
     createball.canMove = false;
     createball.speed = 0.0f;
+    createball.segmentid = hitedball.segmentid;
     Debug.Log(insertdir);
     Vector3 insertPositionOnPath = Path.path.GetPointAtDistance(createball.dis /*+ ball_rotatespeed * inserttime*/);
     float ball_dis = createball.ball_trans.lossyScale.x * 0.5f + hitedball.ball_trans.lossyScale.x *0.5f;
@@ -373,6 +374,8 @@ public class MoveBallSystem : MonoBehaviour
         if (ball_dis > push_dis + pushoffset){
           //表示後面的球的距離超過的兩球半徑和，這個ball不能移動
           ball.canMove = false;
+
+          //回吸加速
           float backaspeed = 0.2f;
           if (ball.gobacktimer < gobackmaxtime)
             backaspeed = 0.0f;
@@ -388,12 +391,14 @@ public class MoveBallSystem : MonoBehaviour
 
         }
         else {
+
           //反之可以動
           ball.canMove = true;
           ball.speed = ball_rotatespeed;
           //並且要校兩個球的位置
           float disoffset = push_dis - ball_dis;
           ball.dis += disoffset * (inserttimer < instertotaltime ? insert_dis_lerp_Factor : push_dis_lerp);
+
         }
       }
 
@@ -552,9 +557,12 @@ public class MoveBallSystem : MonoBehaviour
       BallSpwan.Ball ball = ball_list[i];
       if(frontball == null){
         ball.segmentid = currentsegmentid;
-        setBallColor(ball);
+        //setBallColor(ball);
         continue;
       }
+
+      //在進行判斷更改前先暫存前面那顆球的segmentid
+      //int tempfrontballsegmentid = frontball.segmentid;
 
       float touch_legnth = frontball.ball_trans.lossyScale.x * 0.5f + ball.ball_trans.lossyScale.x * 0.5f;
       float touch_offset = 0.01f;//小許誤差容忍
@@ -570,9 +578,19 @@ public class MoveBallSystem : MonoBehaviour
         //相連
         ball.segmentid = currentsegmentid;
         frontball.gobacktimer = 0.0f;
+
+        if (frontball.segmentid - 1 == ball.segmentid){
+          //觸發消除檢查
+          //Debug.Log("ball index : " + i + " trriger EliminateCheck When canMove change...");
+          setBallColor(ball);
+          //同時更改屬於frontball的segmentID的所有球
+          setBallsegmentid(frontball.segmentid, ball.segmentid);
+          //EliminateLogic.eliminatelogic.setEliminate(new SameColorEliminate() { ballcolor = ball.color, mini = 3 }, i);
+          //EliminateLogic.eliminatelogic.checkEliminate(ball_list);
+        }
       }
 
-      if(segmentfirstball != null){
+      if (segmentfirstball != null){
 
         frontball.gobacktimer += Time.deltaTime * gobackrate;
         //前段最前面那顆，與後段最後一顆如果同顏色
@@ -582,25 +600,12 @@ public class MoveBallSystem : MonoBehaviour
         //只影響分段後，後面的第一顆球
         segmentfirstball = null;
       }
-      setBallColor(ball);
+      //setBallColor(ball);
     }
   }
 
   float gobackrate = 1.0f;//回吸計時器的計時速率
   float gobackmaxtime = 1.0f;//回吸時最慢等待時間
-
-  void goback(){
-    BallSpwan.Ball segmentfirstball = null;
-    for (int i = ball_list.Count - 1; i >= 0; i--){
-      BallSpwan.Ball ball = ball_list[i];
-      BallSpwan.Ball frontball = findfrontball(i);
-      
-      if (ball.segmentid == 0)
-        continue;
-      ball.gobacktimer += Time.deltaTime * gobackrate;
-    }
-
-  }
 
   void setAllBallSpeed(float speed){
     for(int i = 0; i < ball_list.Count; i++){
@@ -626,11 +631,24 @@ public class MoveBallSystem : MonoBehaviour
     //}
 
     //segment用
-    //float rgb = (ball.segmentid % (int)BallColor.SZ) * 0.3f;
+    //float rgb = (ball.segmentid % 4) * 0.25f;
     //ball.ball_trans.GetComponent<MeshRenderer>().material.color = new Color(rgb, rgb, rgb,1.0f);
 
     //gobacktime用
     //float rgb = ball.gobacktimer;
     //ball.ball_trans.GetComponent<MeshRenderer>().material.color = new Color(rgb, rgb, rgb, 1.0f);
+
+    //連消用
+    ball.ball_trans.GetComponent<MeshRenderer>().material.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+  }
+
+  void setBallsegmentid(int preid, int currentid){
+
+    for(int i = 0; i < ball_list.Count; i++){
+      if (ball_list[i].segmentid == preid)
+        ball_list[i].segmentid = currentid;
+      else
+        continue;
+    }
   }
 }

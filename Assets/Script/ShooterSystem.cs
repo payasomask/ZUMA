@@ -34,6 +34,8 @@ public class ShooterSystem : MonoBehaviour
     // Update is called once per frame
     void Update(){
 
+    resetbullettransform();
+
     if (Input.GetKeyDown(KeyCode.Space)){
       fire();
     }
@@ -90,6 +92,14 @@ public class ShooterSystem : MonoBehaviour
   //  yield break;
   //}
 
+  void resetbullettransform(){
+    if (current_bullet == null)
+      return;
+
+    current_bullet.transform.localPosition = StartPosition;
+    //current_bullet.transform.localRotation = new Quaternion();
+  }
+
   void fire(){
     if (mcurrentstatus == Status.Roload)
       return;
@@ -114,6 +124,8 @@ public class ShooterSystem : MonoBehaviour
     Debug.DrawLine(current_bullet.transform.position, current_bullet.transform.position + dir * 5, Color.red, 5.0f);
     current_bullet.transform.SetParent(null);
     current_bullet.setup(dir);
+    current_bullet = null;
+
     mcurrentstatus = Status.Roload;
   }
 }

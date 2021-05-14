@@ -112,6 +112,7 @@ public class EliminateLogic : MonoBehaviour {
 
     //最後的目的是要告訴movesystem要刪除那些ball
     MoveBallSystem.moveballSystem.Eliminate(eliminateTarget);
+    mEliminate = null;
   }
 
   int[] processBallToindexOnpath(EliminateBall[] source)
