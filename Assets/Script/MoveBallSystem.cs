@@ -578,15 +578,16 @@ public class MoveBallSystem : MonoBehaviour
         //相連
         ball.segmentid = currentsegmentid;
         frontball.gobacktimer = 0.0f;
+        //setBallColor(ball);
 
         if (frontball.segmentid - 1 == ball.segmentid){
           //觸發消除檢查
           //Debug.Log("ball index : " + i + " trriger EliminateCheck When canMove change...");
-          setBallColor(ball);
+          //setBallColor(ball);
           //同時更改屬於frontball的segmentID的所有球
           setBallsegmentid(frontball.segmentid, ball.segmentid);
-          //EliminateLogic.eliminatelogic.setEliminate(new SameColorEliminate() { ballcolor = ball.color, mini = 3 }, i);
-          //EliminateLogic.eliminatelogic.checkEliminate(ball_list);
+          EliminateLogic.eliminatelogic.setEliminate(new SameColorEliminate() { ballcolor = ball.color, mini = 3 }, i);
+          EliminateLogic.eliminatelogic.checkEliminate(ball_list);
         }
       }
 

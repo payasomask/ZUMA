@@ -102,6 +102,9 @@ public class EliminateLogic : MonoBehaviour {
       Debug.Log("998 - adjacent_arr == null...");
       return;
     }
+    for(int i = 0; i < adjacent_arr.Length; i++){
+      Debug.Log("998 - adjacent_arr : " + adjacent_arr[i].indexOnPath);
+    }
     var samecolor_arr = samecolor(adjacent_arr, mEliminate);
     if (samecolor_arr == null){
       Debug.Log("998 - samecolor_arr == null...");
@@ -150,8 +153,9 @@ public class EliminateLogic : MonoBehaviour {
       BallSpwan.Ball nextBall = currentBallOnPath[i];
       float nextballradius = nextBall.ball_trans.lossyScale.x * 0.5f;
       float dis_offset = 0.01f;//增加可以接受少許的誤差範圍
-      float dis_to_nextball = (currentcheck_dis_onpath - nextBall.dis)+ dis_offset;
-      if (nextballradius + currentcheckradius <= dis_to_nextball){
+      float dis_to_nextball = (currentcheck_dis_onpath - nextBall.dis);
+      if (dis_to_nextball < nextballradius + currentcheckradius + dis_offset)
+      {
         //相連
         adjacent_list.Add(new EliminateBall() { ball = nextBall, indexOnPath = i } );
       }
@@ -171,8 +175,8 @@ public class EliminateLogic : MonoBehaviour {
       BallSpwan.Ball nextBall = currentBallOnPath[i];
       float nextballradius = nextBall.ball_trans.lossyScale.x * 0.5f;
       float dis_offset = 0.01f;//增加可以接受少許的誤差範圍
-      float dis_to_nextball = (nextBall.dis - currentcheck_dis_onpath) + dis_offset;
-      if (nextballradius + currentcheckradius <= dis_to_nextball)
+      float dis_to_nextball = (nextBall.dis - currentcheck_dis_onpath);
+      if (dis_to_nextball < nextballradius + currentcheckradius + dis_offset)
       {
         //相連
         adjacent_list.Insert(0, new EliminateBall() { ball = nextBall, indexOnPath = i });
